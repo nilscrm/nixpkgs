@@ -9,17 +9,18 @@
   fmt_11,
   mimalloc,
   python3,
+  llvmPackages_19,
 }:
 
 stdenv.mkDerivation rec {
   pname = "sv-lang";
-  version = "7.0";
+  version = "8.1";
 
   src = fetchFromGitHub {
     owner = "MikePopoloski";
     repo = "slang";
     rev = "v${version}";
-    sha256 = "sha256-msSc6jw2xbEZfOwtqwFEDIKcwf5SDKp+j15lVbNO98g=";
+    sha256 = "sha256-bAYrpNIGKO1ms5ULwbizcMja8M5bIAcjfLoMcpB8iig=";
   };
 
   postPatch = ''
@@ -33,12 +34,14 @@ stdenv.mkDerivation rec {
     "-DCMAKE_INSTALL_LIBDIR=lib"
 
     "-DSLANG_INCLUDE_TESTS=${if doCheck then "ON" else "OFF"}"
+    "-DSLANG_USE_BUNDLED_FMT=OFF"
   ];
 
   nativeBuildInputs = [
     cmake
     python3
     ninja
+    llvmPackages_19.clang-tools
   ];
 
   buildInputs = [
@@ -49,9 +52,7 @@ stdenv.mkDerivation rec {
     catch2_3
   ];
 
-  # TODO: a mysterious linker error occurs when building the unittests on darwin.
-  # The error occurs when using catch2_3 in nixpkgs, not when fetching catch2_3 using CMake
-  doCheck = !stdenv.hostPlatform.isDarwin;
+  doCheck = true;
 
   meta = with lib; {
     description = "SystemVerilog compiler and language services";
@@ -60,6 +61,5 @@ stdenv.mkDerivation rec {
     maintainers = with maintainers; [ sharzy ];
     mainProgram = "slang";
     platforms = platforms.all;
-    broken = stdenv.hostPlatform.isDarwin;
   };
 }
